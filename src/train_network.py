@@ -12,17 +12,20 @@ from original_diffusion_model import CNN, DDPM
 # Fix a seed for reproducibility
 torch.manual_seed(1029)
 
+noise_schedule_choice = 'cosine'
+n_hidden = (16, 32, 32, 16)
+# n_hidden = (32, 64, 128, 64, 32)
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),
                                                                      (1.0))])
 dataset = MNIST("./data", train=True, download=True, transform=tf)
 dataloader = DataLoader(dataset, batch_size=128, shuffle=True, num_workers=4,
                         drop_last=True)
 
-gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16),
+gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
          act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, noise_schedule_choice='cosine',
+ddpm = DDPM(gt=gt, noise_schedule_choice=noise_schedule_choice,
             betas=(1e-4, 0.02), n_T=1000)
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
@@ -57,9 +60,21 @@ for i in range(n_epoch):
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./cosine_schedule_contents/ddpm_sample_{i:04d}.png")
 
-        # save model every 10 epochs
-        if i+1 % 10 == 0:
-            torch.save(ddpm.state_dict(),
-                       f"./checkpoints/cosine_schedule_epoch{i+1:03d}.pt")
+        # Print the current path
+        if noise_schedule_choice == 'ddpm':
+            save_image(grid,
+                       f"./ddpm_contents/ddpm_sample_{i:04d}.png")
+        else:
+            save_image(grid,
+                       f"./cosine_contents/ddpm_sample_{i:04d}.png")
+
+        # save model every 5 epochs
+        j = i + 1
+        if j % 5 == 0:
+            if noise_schedule_choice == 'ddpm':
+                torch.save(ddpm.state_dict(),
+                           f"./ddpm_checkpoints/ddpm_epoch{j:03d}.pt")
+            else:
+                torch.save(ddpm.state_dict(),
+                           f"./cosine_checkpoints/cosine_epoch{j:03d}.pt")
