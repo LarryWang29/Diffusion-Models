@@ -20,5 +20,8 @@ def cosine_beta_schedule(s=0.008, T=1000):
                     (torch.linspace(0, T, T+1)/T + s) / (1 + s)).pow(2)
     alpha_t = f_t / f_t[0]
     beta_t = 1 - alpha_t[1:] / alpha_t[:-1]
-    return {"beta_t": torch.clip(beta_t, 0.0001, 0.05),
+
+    # Add in 0 for the first beta
+    beta_t = torch.cat([torch.tensor([0.0]), beta_t])
+    return {"beta_t": torch.clip(beta_t, 0.001, 0.1),
             "alpha_t": torch.clip(alpha_t, 0.001, 0.999)}

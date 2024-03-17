@@ -23,7 +23,7 @@ class CNNBlock(nn.Module):
         self.net = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size,
                       padding=kernel_size // 2),
-            nn.LayerNorm(expected_shape),
+            nn.LayerNorm((out_channels, *expected_shape)),
             act()
         )
 
@@ -157,7 +157,7 @@ class DDPM(nn.Module):
 
         _one = torch.ones(n_sample, device=device)
         z_t = torch.randn(n_sample, *size, device=device)
-        for i in range(self.n_T-1, 0, -1):
+        for i in range(self.n_T, 0, -1):
             alpha_t = self.alpha_t[i]
             beta_t = self.beta_t[i]
 
