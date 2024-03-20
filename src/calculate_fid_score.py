@@ -9,7 +9,9 @@ from torchvision import transforms
 tf = transforms.Compose([transforms.ToTensor(),
                          transforms.Normalize((0.5,), (1.0))])
 dataset = MNIST(root="data", download=True, transform=tf)
-gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16),
+n_hidden = (16, 32, 32, 16)
+# n_hidden = (32, 64, 128, 64, 32)
+gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
          act=nn.GELU)
 
 
@@ -22,28 +24,23 @@ def calculate_fid_score(scheduler):
     with open(f"fid_scores_{scheduler}.csv", "w") as f:
         f.write("Epoch,FID\n")
 
-    # Load 10000 images from the MNIST dataset
+    # Load 1000 images from the MNIST dataset
     real_images = torch.stack([dataset[i][0] for i in range(1000)])
     real_images = real_images.to('cuda')
 
     for i in range(5, 105, 5):
         print(f"Calculating FID score for epoch {i}")
         # Load the model
-        if scheduler == "ddpm":
-            model = DDPM(gt=gt, noise_schedule_choice='ddpm',
-                         betas=(1e-4, 0.02), n_T=1000)
 
-            # Load the model checkpoint
-            model.load_state_dict(torch.load(f"./ddpm_checkpoints/ddpm_epoch{i:03d}.pt"))
-            model.to('cuda')
+        model = DDPM(gt=gt, noise_schedule_choice=scheduler,
+                     betas=(1e-4, 0.02), n_T=1000)
+        # Load the model checkpoint
+        model.load_state_dict(torch.load(f"./{scheduler}_checkpoints/" +
+                                         f"{scheduler}_epoch{i:03d}.pt"))
 
-        elif scheduler == "cosine":
-            model = DDPM(gt=gt, noise_schedule_choice='cosine',
-                         betas=(1e-4, 0.02), n_T=1000)
-
-            # Load the model checkpoint
-            model.load_state_dict(torch.load(f"./cosine_checkpoints/cosine_epoch{i:03d}.pt"))
-            model.to('cuda')
+        # model.load_state_dict(torch.load("./temp_checkpoints/" +
+        #                                  f"epoch{i:03d}.pt"))
+        model.to('cuda')
 
         # Sample 1000 images from the model
         with torch.no_grad():
@@ -64,5 +61,8 @@ def calculate_fid_score(scheduler):
             f.write(f"{i},{fid.compute().item()}\n")
 
 
-# calculate_fid_score("ddpm")
-calculate_fid_score("cosine")
+calculate_fid_score("ddpm")
+# calculate_fid_score("cosine")
+# calculate_fid_score("constant")
+# calculate_fid_score("inverse")
+# calculate_fid_score("temp")

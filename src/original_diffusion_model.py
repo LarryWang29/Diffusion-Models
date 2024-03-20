@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from schedulers import cosine_beta_schedule, ddpm_schedules
+from schedulers import inverse_linear_schedule, constant_noise_schedule
 from typing import Tuple
 
 # Fix a seed for reproducibility
@@ -128,6 +129,10 @@ class DDPM(nn.Module):
             noise_schedule = ddpm_schedules(betas[0], betas[1], n_T)
         if noise_schedule_choice == "cosine":
             noise_schedule = cosine_beta_schedule(0.008, n_T)
+        if noise_schedule_choice == "inverse":
+            noise_schedule = inverse_linear_schedule(betas[0], betas[1], n_T)
+        if noise_schedule_choice == "constant":
+            noise_schedule = constant_noise_schedule(n_T)
 
         # `register_buffer` will track these tensors for device placement, but
         # not store them as model parameters. This is useful for constants.

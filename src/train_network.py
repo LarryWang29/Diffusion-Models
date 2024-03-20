@@ -12,7 +12,10 @@ from original_diffusion_model import CNN, DDPM
 # Fix a seed for reproducibility
 torch.manual_seed(1029)
 
-noise_schedule_choice = 'cosine'
+noise_schedule_choice = 'ddpm'
+# noise_schedule_choice = 'cosine'
+# noise_schedule_choice = 'constant'
+# noise_schedule_choice = 'inverse'
 n_hidden = (16, 32, 32, 16)
 # n_hidden = (32, 64, 128, 64, 32)
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),
@@ -34,7 +37,7 @@ ddpm, optim, dataloader = accelerator.prepare(ddpm, optim, dataloader)
 
 losses = []
 
-n_epoch = 100
+n_epoch = 50
 losses = []
 
 for i in range(n_epoch):
@@ -62,19 +65,25 @@ for i in range(n_epoch):
         # Save samples to `./contents` directory
 
         # Print the current path
-        if noise_schedule_choice == 'ddpm':
-            save_image(grid,
-                       f"./ddpm_contents/ddpm_sample_{i:04d}.png")
-        else:
-            save_image(grid,
-                       f"./cosine_contents/ddpm_sample_{i:04d}.png")
+        # Save the image according to the noise schedule
+        save_image(grid,
+                   f"./{noise_schedule_choice}_contents/" +
+                   f"{noise_schedule_choice}_sample_{i:04d}.png")
 
-        # save model every 5 epochs
+        # Save the model every 5 epochs
         j = i + 1
         if j % 5 == 0:
-            if noise_schedule_choice == 'ddpm':
-                torch.save(ddpm.state_dict(),
-                           f"./ddpm_checkpoints/ddpm_epoch{j:03d}.pt")
-            else:
-                torch.save(ddpm.state_dict(),
-                           f"./cosine_checkpoints/cosine_epoch{j:03d}.pt")
+            torch.save(ddpm.state_dict(),
+                       f"./{noise_schedule_choice}_checkpoints/" +
+                       f"{noise_schedule_choice}_epoch{j:03d}.pt")
+
+        # save_image(grid,
+        #            "./temp_contents/" +
+        #            f"sample_{i:04d}.png")
+
+        # # Save the model every 5 epochs
+        # j = i + 1
+        # if j % 5 == 0:
+        #     torch.save(ddpm.state_dict(),
+        #                "./temp_checkpoints/" +
+        #                f"epoch{j:03d}.pt")
