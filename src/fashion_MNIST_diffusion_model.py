@@ -205,15 +205,18 @@ class ColdDiffusion(nn.Module):
         # Restore the image at time t using the network
         return self.restore_nn(z_t, t / self.n_T)
 
-    def sample(self, n_sample: int, size, device) -> torch.Tensor:
+    def sample(self, n_sample: int, size, device, time=0,
+               z_t=None) -> torch.Tensor:
         """Algorithm 18.2 in Prince"""
         # z_t = torch.randn(n_sample, *size, device=device)
         _one = torch.ones(n_sample, device=device)
         # Sample random images from the mixing dataset according to size
-        z_t = torch.stack([self.mixing_dataset[np.random.randint(len(self.mixing_dataset))][0]
-                           for _ in range(n_sample)]).to(device)
+        if z_t is None:
+            z_t = torch.stack([self.mixing_dataset[np.random.randint(len(self.mixing_dataset))][0]
+                               for _ in range(n_sample)]).to(device)
         restored_image = z_t.clone()
-        for t in range(self.n_T, 0, -1):
+
+        for t in range(self.n_T, time, -1):
 
             # degrade of restoration at time t
             restoration = self.restore(restored_image, t * _one)
@@ -223,5 +226,9 @@ class ColdDiffusion(nn.Module):
 
         return restored_image
 
-    def conditional_sample(self, device):
-        pass
+    def conditional_sample(self, x, z, t, device):
+        # Degrade it all the way to n_T
+        z_t = self.degrade(x, self.n_T, z)
+
+        x_restored = self.sample(1, None, device, time=t, z_t=z_t)
+        return x_restored
