@@ -125,7 +125,7 @@ class DDPM(nn.Module):
 
         self.gt = gt
 
-        if noise_schedule_choice == "ddpm":
+        if noise_schedule_choice == "linear":
             noise_schedule = ddpm_schedules(betas[0], betas[1], n_T)
         if noise_schedule_choice == "cosine":
             noise_schedule = cosine_beta_schedule(0.008, n_T)
@@ -148,21 +148,29 @@ class DDPM(nn.Module):
         """Algorithm 18.1 in Prince"""
 
         t = torch.randint(1, self.n_T, (x.shape[0],), device=x.device)
-        eps = torch.randn_like(x)  # eps ~ N(0, 1)
-        alpha_t = self.alpha_t[t, None, None, None]
-
-        z_t = torch.sqrt(alpha_t) * x + torch.sqrt(1 - alpha_t) * eps
+        z_t, eps = self.degrade(x, t)
         # This is the z_t, which is sqrt(alphabar) x_0 + sqrt(1-alphabar) * eps
         # We should predict the "error term" from this z_t.
 
         return self.criterion(eps, self.gt(z_t, t / self.n_T))
 
-    def sample(self, n_sample: int, size, device) -> torch.Tensor:
+    def degrade(self, x: torch.Tensor, t) -> torch.Tensor:
+        # First component of the sum
+        alpha_t = self.alpha_t[t, None, None, None]
+        eps = torch.randn_like(x)
+        z_t = torch.sqrt(alpha_t) * x + torch.sqrt(1 - alpha_t) * eps
+        return z_t, eps
+
+    def sample(self, n_sample: int, size, device, time=0,
+               z_t=None) -> torch.Tensor:
         """Algorithm 18.2 in Prince"""
 
         _one = torch.ones(n_sample, device=device)
-        z_t = torch.randn(n_sample, *size, device=device)
-        for i in range(self.n_T, 0, -1):
+
+        if z_t is None:
+            z_t = torch.randn(n_sample, *size, device=device)
+
+        for i in range(self.n_T, time, -1):
             alpha_t = self.alpha_t[i]
             beta_t = self.beta_t[i]
 
@@ -176,3 +184,10 @@ class DDPM(nn.Module):
                 z_t += torch.sqrt(beta_t) * torch.randn_like(z_t)
 
         return z_t
+
+    def conditional_sample(self, x, t, device):
+        z_t, _ = self.degrade(x, t)
+
+        x_restored = self.sample(x.shape[0], x.shape[1:], device, time=t,
+                                 z_t=z_t)
+        return x_restored

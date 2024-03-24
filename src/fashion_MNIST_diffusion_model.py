@@ -160,7 +160,7 @@ class ColdDiffusion(nn.Module):
         self.mixing_dataset = FashionMNIST(root="data", download=True,
                                            transform=tf)
 
-        if noise_schedule_choice == "ddpm":
+        if noise_schedule_choice == "linear":
             noise_schedule = ddpm_schedules(betas[0], betas[1], n_T)
         if noise_schedule_choice == "cosine":
             noise_schedule = cosine_beta_schedule(0.008, n_T)
@@ -202,7 +202,7 @@ class ColdDiffusion(nn.Module):
         return first_component + second_component
 
     def restore(self, z_t, t):
-        # Restore the image at time t using the network
+        # Restore the image directly at time t using the restore_nn
         return self.restore_nn(z_t, t / self.n_T)
 
     def sample(self, n_sample: int, size, device, time=0,
