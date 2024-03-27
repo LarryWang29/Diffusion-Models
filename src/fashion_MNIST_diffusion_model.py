@@ -17,7 +17,7 @@ class ConvNextBlock(nn.Module):
                  input_shape, time_emb_dim=32):
         super().__init__()
 
-        self.time_mlp = nn.Sequential(
+        self.shallow_mlp = nn.Sequential(
             nn.GELU(),
             nn.Linear(time_emb_dim, in_channels)
         )
@@ -25,26 +25,27 @@ class ConvNextBlock(nn.Module):
         self.ds_conv = nn.Conv2d(in_channels, in_channels, kernel_size=7,
                                  padding=3, groups=in_channels)
 
-        self.net = nn.Sequential(
-            # layernorm
-            nn.LayerNorm((in_channels, *input_shape)),
-            nn.Conv2d(in_channels, out_channels * 2, kernel_size=3,
-                      padding=1),
-            nn.GELU(),
-            nn.Conv2d(out_channels * 2, out_channels, kernel_size=3, padding=1),
-        )
-
+        self.ln = nn.LayerNorm((in_channels, *input_shape))
+        self.conv1 = nn.Conv2d(in_channels, out_channels * 2, kernel_size=3,
+                               padding=1)
+        self.act = nn.GELU()
+        self.conv2 = nn.Conv2d(out_channels * 2, out_channels, kernel_size=3,
+                               padding=1)
         self.res_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
 
     def forward(self, x, t):
-        h = self.ds_conv(x)
+        depth_conv = self.ds_conv(x)
 
-        condition = self.time_mlp(t)[:, :, None, None]
-        # print(condition.shape)
-        h = h + condition
+        time_embedding = self.shallow_mlp(t)[:, :, None, None]
+        depth_conv = depth_conv + time_embedding
 
-        h = self.net(h)
-        return h + self.res_conv(x)
+        ln = self.ln(depth_conv)
+        conv1 = self.conv1(ln)
+        act = self.act(conv1)
+        conv2 = self.conv2(act)
+
+        res_conv = self.res_conv(x)
+        return conv2 + res_conv
 
 
 class UNet(nn.Module):

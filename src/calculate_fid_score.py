@@ -5,12 +5,10 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 from fashion_MNIST_diffusion_model import ColdDiffusion, UNet
 from original_diffusion_model import DDPM, CNN
 from torchvision.datasets import MNIST
-from torchvision import transforms
+from torchvision.transforms import ToTensor
 
 # Load the dataset
-tf = transforms.Compose([transforms.ToTensor(),
-                         transforms.Normalize((0.5,), (1.0))])
-dataset = MNIST(root="data", download=True, transform=tf, train=False)
+dataset = MNIST(root="data", download=True, train=False, transform=ToTensor())
 # n_hidden = (32, 64, 128, 64, 32)
 
 
@@ -62,8 +60,15 @@ def calculate_fid_score(scheduler, model_type, nn_choice):
         with torch.no_grad():
             fake_images = model.sample(1000, (1, 28, 28), device='cuda')
 
+        # Normalise the fake images
+        min_vals = fake_images.min(dim=-1, keepdim=True)[0].min(dim=-2, keepdim=True)[0]
+        max_vals = fake_images.max(dim=-1, keepdim=True)[0].max(dim=-2, keepdim=True)[0]
+
+        image_range = max_vals - min_vals + 1e-5
+        fake_images_norm = (fake_images - min_vals) / image_range
+
         real_images_rgb, fake_images_rgb = to_rgb(real_images), \
-            to_rgb(fake_images)
+            to_rgb(fake_images_norm)
 
         fid = FrechetInceptionDistance(normalize=True)
         fid.to('cuda')
