@@ -184,8 +184,12 @@ class ColdDiffusion(nn.Module):
         """Algorithm 18.1 in Prince"""
 
         # Randomly sample an image from the mixing dataset
-        z = self.mixing_dataset[np.random.randint(len(self.mixing_dataset))][0]
-        z = z[None, ...].to(x.device)
+        num_of_samples = x.shape[0]
+        # Sample the same number of images as the batch size
+        z = torch.stack([self.mixing_dataset[np.random.randint(len(self.mixing_dataset))][0]
+                        for _ in range(num_of_samples)]).to(x.device)
+        # z = self.mixing_dataset[np.random.randint(len(self.mixing_dataset))][0]
+        # z = z[None, ...].to(x.device)
 
         t = torch.randint(1, self.n_T, (x.shape[0],), device=x.device)
 

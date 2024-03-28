@@ -54,8 +54,6 @@ def train_network(noise_schedule_choice, n_hidden, n_epoch,
         ddpm = ColdDiffusion(restore_nn=gt, noise_schedule_choice=noise_schedule_choice,
                              betas=(1e-4, 0.02), n_T=1000)
     elif model_type == 'DDPM':
-        # gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
-        #          act=nn.GELU)
         if nn_choice == 'CNN':
             gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
                      act=nn.GELU)

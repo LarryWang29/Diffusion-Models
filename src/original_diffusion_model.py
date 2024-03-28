@@ -6,7 +6,7 @@ from schedulers import inverse_linear_schedule, constant_noise_schedule
 from typing import Tuple
 
 # Fix a seed for reproducibility
-torch.manual_seed(1029)
+# torch.manual_seed(1029)
 
 
 class CNNBlock(nn.Module):
@@ -169,6 +169,7 @@ class DDPM(nn.Module):
 
         if z_t is None:
             z_t = torch.randn(n_sample, *size, device=device)
+        z_t = z_t.clone()
 
         for i in range(self.n_T, time, -1):
             alpha_t = self.alpha_t[i]
@@ -186,7 +187,7 @@ class DDPM(nn.Module):
         return z_t
 
     def conditional_sample(self, x, t, device):
-        z_t, _ = self.degrade(x, t)
+        z_t, _ = self.degrade(x, self.n_T)
 
         x_restored = self.sample(x.shape[0], x.shape[1:], device, time=t,
                                  z_t=z_t)

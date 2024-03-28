@@ -3,26 +3,25 @@ import torch
 import torch.nn as nn
 import os
 from torchvision import transforms
-from torchvision.datasets import MNIST, FashionMNIST
+from torchvision.datasets import MNIST
 from torchvision.utils import make_grid
-from fashion_MNIST_diffusion_model import UNet, ColdDiffusion
+from original_diffusion_model import CNN, DDPM
 import matplotlib.pyplot as plt
 
 # Fix a seed for reproducibility
 # torch.manual_seed(1029)
 
 
-def generate_ColdDiffusion_diffusion_plot(scheduler, epoch_number, num_samples):
-    checkpoint = torch.load(f"./ColdDiffusion_checkpoints/UNet_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch{epoch_number:03d}.pt")
-    n_hidden = (32, 64, 128)
-    gt = UNet(in_channels=1, out_channels=1, hidden_dims=n_hidden,
-              time_embeddings=32, act=nn.GELU)
-    model = ColdDiffusion(restore_nn=gt, noise_schedule_choice=scheduler,
-                          betas=(1e-4, 0.02), n_T=1000)
+def generate_DDPM_diffusion_plot(scheduler, epoch_number, num_samples):
+    checkpoint = torch.load(f"./DDPM_checkpoints/CNN_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch{epoch_number:03d}.pt")
+    n_hidden = (16, 32, 32, 16)
+    gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
+             act=nn.GELU)
+    model = DDPM(gt=gt, noise_schedule_choice=scheduler,
+                 betas=(1e-4, 0.02), n_T=1000)
     tf = transforms.Compose([transforms.ToTensor(),
                              transforms.Normalize((0.5,), (1.0))])
     dataset = MNIST("./data", train=False, download=True, transform=tf)
-    degradation_dataset = FashionMNIST("./data", train=False, download=True, transform=tf)
 
     model.load_state_dict(checkpoint)
     model.to("cuda")
@@ -41,21 +40,13 @@ def generate_ColdDiffusion_diffusion_plot(scheduler, epoch_number, num_samples):
         # print(torch.max(image), torch.min(image))
         images.append(image)
 
-    degradation_images = []
-    for i in range(num_samples):
-        degradation_image, _ = degradation_dataset[10*i+29]
-        degradation_image = degradation_image.unsqueeze(0)
-        degradation_image = degradation_image.to("cuda")
-        degradation_images.append(degradation_image)
-
     # Degrade the images
     t_array = torch.linspace(0, 1000, 6, dtype=torch.int)
     degraded_images = []
     for i in range(num_samples):
         for time in t_array:
             with torch.no_grad():
-                degraded_image = model.degrade(images[i], t=time,
-                                               z=degradation_images[i])
+                degraded_image = model.degrade(images[i], t=time)[0]
                 degraded_images.append(degraded_image)
         final_degraded_image = degraded_images[-1]    # Restore the images and append them to the list
         for time in (t_array[:-1].flip(0)):
@@ -77,16 +68,16 @@ def generate_ColdDiffusion_diffusion_plot(scheduler, epoch_number, num_samples):
     plt.title(f"Illustration of forward and backward diffusion of {num_samples} images using {scheduler} scheduler",
               fontsize=18)
     plt.tight_layout()
-    plt.savefig(f"./figures/diffusion_evolution/ColdDiffusion_{scheduler}_epoch{epoch_number:03d}_diffusion_evolution.png")
+    plt.savefig(f"./figures/diffusion_evolution/{scheduler}_epoch{epoch_number:03d}_diffusion_evolution.png")
 
 
 def generate_new_samples_plot(scheduler, epoch_number, num_samples):
-    checkpoint = torch.load(f"./ColdDiffusion_checkpoints/UNet_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch{epoch_number:03d}.pt")
-    hidden_dims = (32, 64, 128)
-    gt = UNet(in_channels=1, out_channels=1, hidden_dims=hidden_dims,
-              time_embeddings=32, act=nn.GELU)
-    model = ColdDiffusion(restore_nn=gt, noise_schedule_choice=scheduler,
-                          betas=(1e-4, 0.02), n_T=1000)
+    checkpoint = torch.load(f"./DDPM_checkpoints/CNN_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch{epoch_number:03d}.pt")
+    n_hidden = (16, 32, 32, 16)
+    gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
+             act=nn.GELU)
+    model = DDPM(gt=gt, noise_schedule_choice=scheduler,
+                 betas=(1e-4, 0.02), n_T=1000)
 
     model.load_state_dict(checkpoint)
     model.to("cuda")
@@ -113,10 +104,19 @@ def generate_new_samples_plot(scheduler, epoch_number, num_samples):
     plt.yticks([])
     plt.title(f"Samples generated using {scheduler} scheduler at epoch {epoch_number}", fontsize=15)
     plt.tight_layout()
-    plt.savefig(f"./figures/generated_samples/ColdDiffusion_{scheduler}_epoch{epoch_number:03d}_samples.png")
+    plt.savefig(f"./figures/generated_samples/{scheduler}_epoch{epoch_number:03d}_samples.png")
 
 
-generate_ColdDiffusion_diffusion_plot("linear", 50, 4)
-generate_ColdDiffusion_diffusion_plot("cosine", 50, 4)
-generate_new_samples_plot("linear", 50, 25)
-generate_new_samples_plot("cosine", 50, 25)
+generate_DDPM_diffusion_plot("cosine", 50, 4)
+generate_DDPM_diffusion_plot("inverse", 50, 4)
+generate_DDPM_diffusion_plot("linear", 50, 4)
+generate_DDPM_diffusion_plot("constant", 50, 4)
+# generate_new_samples_plot('linear', 50, 25)
+# generate_new_samples_plot('cosine', 50, 25)
+# generate_new_samples_plot('inverse', 50, 25)
+# generate_new_samples_plot('constant', 50, 25)
+# for t in range(5, 55, 5):
+#     generate_new_samples_plot('linear', t, 10)
+#     generate_new_samples_plot('cosine', t, 10)
+#     generate_new_samples_plot('inverse', t, 10)
+#     generate_new_samples_plot('constant', t, 10)
