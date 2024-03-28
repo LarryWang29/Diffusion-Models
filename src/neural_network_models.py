@@ -334,7 +334,7 @@ class UNet(nn.Module):
 
     def maxpool_block(self, kernel_size, stride):
         """
-        !@ brief Maxpooling block used in the UNet model. Used to downsample the image
+        !@brief Maxpooling block used in the UNet model. Used to downsample the image
         by a factor of 2 and increase the number of channels by a factor of 2.
 
         @param kernel_size The kernel size of the maxpooling layer.
