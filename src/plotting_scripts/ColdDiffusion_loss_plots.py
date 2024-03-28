@@ -1,5 +1,3 @@
-# Read in the loss data from the DDPM training and plot it
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch

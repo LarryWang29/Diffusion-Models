@@ -1,4 +1,7 @@
 # This scripts plots the diffused images at different time steps
+import sys
+sys.path.append("./src")
+
 import torch
 import torch.nn as nn
 import os

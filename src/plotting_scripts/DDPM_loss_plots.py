@@ -1,4 +1,6 @@
 # Read in the loss data from the DDPM training and plot it
+import sys
+sys.path.append("./src")
 
 import matplotlib.pyplot as plt
 import pandas as pd

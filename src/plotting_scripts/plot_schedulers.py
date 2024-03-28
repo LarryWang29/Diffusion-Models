@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./src")
+
 import matplotlib.pyplot as plt
 import torch
 from torchvision.datasets import MNIST

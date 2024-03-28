@@ -1,4 +1,6 @@
-# This scripts plots the diffused images at different time steps
+import sys
+sys.path.append("./src")
+
 import torch
 import torch.nn as nn
 import os
@@ -120,7 +122,7 @@ def generate_new_samples_plot(scheduler, epoch_number, num_samples):
 # generate_ColdDiffusion_diffusion_plot("linear", 50, 4)
 # generate_ColdDiffusion_diffusion_plot("cosine", 50, 4)
 # generate_new_samples_plot("linear", 50, 25)
-# generate_new_samples_plot("cosine", 50, 25)
-for t in range(5, 55, 5):
-    generate_new_samples_plot("linear", t, 10)
-    generate_new_samples_plot("cosine", t, 10)
+generate_new_samples_plot("cosine", 50, 25)
+# for t in range(5, 55, 5):
+#     generate_new_samples_plot("linear", t, 10)
+#     generate_new_samples_plot("cosine", t, 10)
