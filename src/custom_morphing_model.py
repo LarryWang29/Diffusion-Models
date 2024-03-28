@@ -81,7 +81,8 @@ class ColdDiffusion(nn.Module):
         """!@brief Forward pass of the Cold Diffusion model.
 
         @details This function performs the forward pass of the Cold Diffusion
-        model; the algorithm used is Algorithm 18.1 in Prince.
+        model, which computes the loss between the input image and the restored
+        image.
         
         @param x The input image to be morphed, can be a batch of images.
         """

@@ -1,7 +1,7 @@
 """!@file calculate_fid_score.py
-@brief Calculate the FID score for the morphing models at particular epochs.
+@brief Calculate the FID score for diffusion models at particular epochs.
 
-@details This script calculates the FID score for the morphing models at
+@details This script calculates the FID score for the diffusion models at
 particular epochs. The script loads the model checkpoint at the specified
 epoch and samples 1000 images from the model. The script then calculates
 the FID score between the generated images and the MNIST test dataset. The

@@ -5,7 +5,7 @@
 The script trains the Diffusion model using the MNIST dataset. At every
 epoch, the script saves the training and validation losses to a csv file.
 The script also saves the generated samples to a directory. Additionally, 
-script saves the model checkpoints every 5 epochs. The model to be trained
+script saves model checkpoints every 5 epochs. The model to be trained
 is specified by the user via command line. The first argument is the noise
 schedule choice, the second argument is the model type, and the third argument
 is the neural network choice. The noise schedule choice can be "linear", "cosine",
@@ -207,15 +207,15 @@ if __name__ == "__main__":
 
     if model_type == "ColdDiffusion":
         if nn_choice == "CNN":
-            train_network(noise_schedule, (16, 32, 32, 16), 50, record_metrics=True,
+            train_network(noise_schedule, (16, 32, 32, 16), 50, record_metrics=False,
                           model_type=model_type, nn_choice=nn_choice)
         else:
-            train_network(noise_schedule, (32, 64, 128), 50, record_metrics=True,
+            train_network(noise_schedule, (32, 64, 128), 50, record_metrics=False,
                           model_type=model_type, nn_choice=nn_choice)
     else:
         if nn_choice == "CNN":
-            train_network(noise_schedule, (16, 32, 32, 16), 50, record_metrics=True,
+            train_network(noise_schedule, (16, 32, 32, 16), 50, record_metrics=False,
                           model_type=model_type, nn_choice=nn_choice)
         else:
-            train_network(noise_schedule, (32, 64, 128), 50, record_metrics=True,
+            train_network(noise_schedule, (32, 64, 128), 50, record_metrics=False,
                           model_type=model_type, nn_choice=nn_choice)
