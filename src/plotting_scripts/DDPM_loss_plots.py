@@ -1,4 +1,11 @@
-# Read in the loss data from the DDPM training and plot it
+"""!@file DDPM_loss_plots.py
+@brief Plot the training and validation loss for the DDPM model using
+different noise schedules and the FID scores during training (every 5 epochs).
+Specifically, this script generates figures 2, 3, 6 in the report.
+
+@author Larry Wang
+@Date 27/03/2024
+"""
 import sys
 sys.path.append("./src")
 
@@ -13,6 +20,12 @@ from torchvision import transforms
 
 
 def plot_losses():
+    """
+    !@brief Plot the training and validation loss for the DDPM model using
+    different noise schedules.
+
+    @return None
+    """
     # Read in the loss from DDPM training and plot it
     schedulers = ["linear", "cosine", "inverse", "constant"]
 
@@ -22,7 +35,7 @@ def plot_losses():
         # Read in the loss data
         loss_data = pd.read_csv(loss_directory)
 
-        # Plot the loss data)
+        # Plot the loss data
         plt.figure(figsize=(6, 5))
         plt.plot(loss_data["Training Loss"], label="Train Loss", marker="o",
                  markevery=5)
@@ -37,6 +50,11 @@ def plot_losses():
 
 
 def plot_FID_scores():
+    """
+    !@brief Plot the FID scores for the DDPM model using different noise schedules.
+
+    @return None
+    """
     # Read in the FID scores from DDPM training and plot it
     schedulers = ["linear", "cosine", "inverse", "constant"]
 
@@ -60,6 +78,11 @@ def plot_FID_scores():
 
 
 def plot_KS_statistics():
+    """
+    !@brief Plot the Kolmogorov-Smirnov p-values for the DDPM model using different noise schedules.
+
+    @return None
+    """
     # Define a DDPM model
     cosine_schedule = cosine_beta_schedule()
     inverse_schedule = inverse_linear_schedule()
@@ -141,6 +164,6 @@ def plot_KS_statistics():
     plt.savefig("./figures/KS_p_values.png")
 
 
-# plot_losses()
-# plot_KS_statistics()
+plot_losses()
+plot_KS_statistics()
 plot_FID_scores()

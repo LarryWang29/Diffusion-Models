@@ -1,3 +1,12 @@
+"""!@file plot_schedulers.py
+@brief Plot the alpha and beta values for different noise schedules.
+
+@details This script plots the alpha and beta values for the DDPM, cosine, 
+inverse, and constant noise schedules. This generates figure 1 in the report.
+
+@author Larry Wang
+@Date 22/03/2024
+"""
 import sys
 sys.path.append("./src")
 

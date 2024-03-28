@@ -1,3 +1,12 @@
+"""!@file ColdDiffusion_restoration_operator_plots.py
+@brief Plotting script for the Cold Diffusion model. This file contains 
+the code to generate plots for the Cold Diffusion model. The script generates 
+plots for the restoration operator of the model. The script saves the plots to 
+a directory. Specifically, this script generate figure 13 in the report.
+
+@author Larry Wang
+@Date 27/03/2024
+"""
 import sys
 sys.path.append("./src")
 
@@ -15,11 +24,15 @@ import matplotlib.pyplot as plt
 
 torch.manual_seed(42)
 def make_restoration_operator_plots():
-    # Fix a seed for reproducibility
+    """
+    !@brief Generate the plots for restoration operator of the Cold Diffusion model
+    used in the report.
+
+    @return None
+    """
 
     # Change the path to the outer directory
-    scheduler = 'linear'
-    # checkpoint = torch.load(f"./DDPM_checkpoints/CNN_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch050.pt")
+    scheduler = 'cosine'
     checkpoint = torch.load(f"./ColdDiffusion_checkpoints/UNet_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch050.pt")
     gt = UNet(in_channels=1, out_channels=1, hidden_dims=(32, 64, 128),
             act=nn.GELU)
@@ -35,7 +48,6 @@ def make_restoration_operator_plots():
     model.to("cuda")
     model.eval()
 
-    # model.conditional_sample(real_images, )
     t_array = torch.linspace(100, 1000, 10, dtype=torch.int32).to("cuda")
 
     # Assess the model's ability to directly restore the images

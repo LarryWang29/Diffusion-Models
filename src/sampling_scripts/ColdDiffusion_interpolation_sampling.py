@@ -1,3 +1,15 @@
+"""!@file ColdDiffusion_addnoise_sampling.py
+@brief Sample images from the Cold Diffusion model using different 
+interpolations.
+
+@details This file contains the code to sample images from the Cold Diffusion
+model with added noise. This is an attempt to diversify the images generated
+by the model. It produces figures 17 in the report.
+
+@author Larry Wang
+@Date 27/03/2024
+"""
+
 import sys
 sys.path.append("./src")
 
@@ -6,7 +18,7 @@ import torch.nn as nn
 import os
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import MNIST, FashionMNIST
+from torchvision.datasets import FashionMNIST
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 from custom_morphing_model import ColdDiffusion
@@ -24,15 +36,7 @@ model = ColdDiffusion(
     restore_nn=gt, noise_schedule_choice=scheduler, betas=(1e-4, 0.02), n_T=1000
 )
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0))])
-dataset = MNIST("./data", train=True, download=True, transform=tf)
-validation_dataset = MNIST("./data", train=False, download=True, transform=tf)
 degrading_dataset = FashionMNIST("./data", train=False, download=True, transform=tf)
-dataloader = DataLoader(
-    dataset, batch_size=128, shuffle=True, num_workers=4, drop_last=True
-)
-validation_dataloader = DataLoader(
-    validation_dataset, batch_size=128, shuffle=True, num_workers=4, drop_last=True
-)
 model.load_state_dict(checkpoint)
 model.to("cuda")
 model.eval()
@@ -61,7 +65,7 @@ def interpolation_sampling(model, num_interpolations):
     # Create an tensor to store the interpolated images
     z_t_interpolate = torch.zeros(25, 1, 28, 28, device="cuda")
 
-    # Create 25 images that are linearly interpolated between two images
+    # Create 25 images that are linearly interpolated between num_interpolations images
     for i in range(25):
         for j in range(num_interpolations):
             z_t_interpolate[i] += z_t[num_interpolations * i + j] / num_interpolations

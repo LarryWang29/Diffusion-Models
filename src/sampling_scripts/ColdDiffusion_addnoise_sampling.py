@@ -1,3 +1,14 @@
+"""!@file ColdDiffusion_addnoise_sampling.py
+@brief Sample images from the Cold Diffusion model with added noise.
+
+@details This file contains the code to sample images from the Cold Diffusion
+model with added noise. This is an attempt to diversify the images generated
+by the model. It produces figures 16 in the report.
+
+@author Larry Wang
+@Date 27/03/2024
+"""
+
 import sys
 sys.path.append("./src")
 
@@ -9,13 +20,12 @@ from torchvision import transforms
 from torchvision.datasets import MNIST, FashionMNIST
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
+from custom_morphing_model import ColdDiffusion
+from neural_network_models import UNet
 
-# Temporatrily import Unet to test functionality
-from custom_morphing_model import UNet, ColdDiffusion
-
-
-# Change the path to the outer directory
 scheduler = "cosine"
+
+# Load the trained model
 checkpoint = torch.load(
     f"./ColdDiffusion_checkpoints/UNet_checkpoints/{scheduler}_checkpoints/{scheduler}_epoch050.pt"
 )
@@ -25,22 +35,10 @@ model = ColdDiffusion(
     restore_nn=gt, noise_schedule_choice=scheduler, betas=(1e-4, 0.02), n_T=1000
 )
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0))])
-dataset = MNIST("./data", train=True, download=True, transform=tf)
-validation_dataset = MNIST("./data", train=False, download=True, transform=tf)
 degrading_dataset = FashionMNIST("./data", train=False, download=True, transform=tf)
-dataloader = DataLoader(
-    dataset, batch_size=128, shuffle=True, num_workers=4, drop_last=True
-)
-validation_dataloader = DataLoader(
-    validation_dataset, batch_size=128, shuffle=True, num_workers=4, drop_last=True
-)
 model.load_state_dict(checkpoint)
 model.to("cuda")
 model.eval()
-
-# # Sample 100 images from the model
-# with torch.no_grad():
-#     samples = model.sample(100, (1, 28, 28), device="cuda")
 
 torch.manual_seed(1029)
 # Get 25 images from the degrading dataset
@@ -54,14 +52,14 @@ for batch in degrading_dataloader:
 z_t = z_t.to("cuda")
 
 # Add different levels of noise to z_t
-noise_levels = [0, 0.001, 0.005, 0.01, 0.05, 0.25, 0.5]
-# noise_levels = [0.025]
+noise_levels = [0, 0.001, 0.01, 0.1, 0.25, 0.5]
 
 with torch.no_grad():
-    # create directory to store output
+    # create directory to store output if it does not exist
     if not os.path.exists("./figures/ColdDiffusion"):
         os.makedirs("./figures/ColdDiffusion")
-    # Sample at different noise levels
+
+    # Sample at different added noise levels
     for noise in noise_levels:
         z_t += noise * torch.randn(25, 1, 28, 28, device="cuda")
         # Normalise z_t to be between -0.5 and 0.5

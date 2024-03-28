@@ -1,9 +1,24 @@
+"""!@file ColdDiffusion_loss_plots.py
+@brief Plot the training and validation loss for the ColdDiffusion model using
+different noise schedules and the FID scores during training (every 5 epochs).
+Specifically, this script generates figure 12 in the report.
+
+@author Larry Wang
+@Date 27/03/2024
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 
 
 def plot_losses():
+    """
+    !@brief Plot the training and validation loss for the ColdDiffusion model using
+    different noise schedules.
+
+    @return None
+    """
     # Read in the loss from DDPM training and plot it
     schedulers = ["linear", "cosine"]
     plt.figure(figsize=(6, 5))
@@ -28,6 +43,11 @@ def plot_losses():
 
 
 def plot_FID_scores():
+    """
+    !@brief Plot the FID scores for the ColdDiffusion model using different noise schedules.
+
+    @return None
+    """
     # Read in the FID scores from DDPM training and plot it
     schedulers = ["linear", "cosine"]
 
