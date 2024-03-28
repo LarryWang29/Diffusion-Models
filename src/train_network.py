@@ -9,10 +9,9 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from torchvision.utils import save_image, make_grid
-from original_diffusion_model import CNN, DDPM
-
-# Temporatrily import Unet to test functionality
-from fashion_MNIST_diffusion_model import UNet, ColdDiffusion
+from DDPM_model import DDPM
+from custom_morphing_model import ColdDiffusion
+from neural_network_models import CNN, UNet
 
 # Fix a seed for reproducibility
 torch.manual_seed(1029)

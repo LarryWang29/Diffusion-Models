@@ -5,7 +5,8 @@ import os
 from torchvision import transforms
 from torchvision.datasets import MNIST, FashionMNIST
 from torchvision.utils import make_grid
-from fashion_MNIST_diffusion_model import UNet, ColdDiffusion
+from custom_morphing_model import ColdDiffusion
+from neural_network_models import UNet
 import matplotlib.pyplot as plt
 
 # Fix a seed for reproducibility

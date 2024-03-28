@@ -48,31 +48,3 @@ def constant_noise_schedule(T=1000):
     alpha_t = torch.exp(torch.cumsum(torch.log(1 - beta_t), dim=0))
 
     return {"beta_t": beta_t, "alpha_t": alpha_t}
-
-
-# cosine_beta_schedule()
-# constant_noise_schedule()
-# ddpm_schedules()
-# # Plot the sine noise schedule
-# import matplotlib.pyplot as plt
-# import numpy as np
-
-# cosine_schedule = cosine_beta_schedule()
-# plt.plot(cosine_schedule["beta_t"].numpy())
-
-# # Plot the linear schedule
-# linear_schedule = ddpm_schedules()
-# plt.plot(linear_schedule["beta_t"].numpy())
-
-# # Plot the constant schedule
-# constant_schedule = constant_noise_schedule()
-# plt.plot(constant_schedule["beta_t"].numpy())
-
-# # Plot the reciprocal schedule
-# reciprocal_schedule = inverse_linear_schedule()
-# plt.plot(reciprocal_schedule["beta_t"].numpy())
-
-# plt.title("Linear Noise Schedule")
-# plt.xlabel("Time")
-# plt.ylabel("Beta")
-# plt.show()

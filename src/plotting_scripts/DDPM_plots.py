@@ -5,7 +5,8 @@ import os
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from torchvision.utils import make_grid
-from original_diffusion_model import CNN, DDPM
+from DDPM_model import DDPM
+from neural_network_models import CNN
 import matplotlib.pyplot as plt
 
 # Fix a seed for reproducibility
