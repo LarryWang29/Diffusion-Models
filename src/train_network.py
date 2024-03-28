@@ -1,3 +1,21 @@
+"""!@file src/train_network.py
+@brief Training script for the Cold Diffusion model.
+
+@details This file contains the training script for a Diffusion model.
+The script trains the Diffusion model using the MNIST dataset. At every
+epoch, the script saves the training and validation losses to a csv file.
+The script also saves the generated samples to a directory. Additionally, 
+script saves the model checkpoints every 5 epochs. The model to be trained
+is specified by the user via command line. The first argument is the noise
+schedule choice, the second argument is the model type, and the third argument
+is the neural network choice. The noise schedule choice can be "linear", "cosine",
+"inverse", or "constant". The model type can be "ColdDiffusion" or "DDPM". The
+neural network choice can be "CNN" or "UNet".
+
+@author Larry Wang
+@Date 22/03/2024
+"""
+
 import torch
 import numpy as np
 import torch.nn as nn
@@ -20,8 +38,34 @@ torch.manual_seed(1029)
 def train_network(noise_schedule_choice, n_hidden, n_epoch,
                   record_metrics=True, model_type='ColdDiffusion',
                   nn_choice='CNN'):
+    """
+    !@brief Train the a Diffusion model.
 
-    # Erase previous losses file
+    @details This function trains a Diffusion model using the MNIST dataset. At every
+    epoch, the function saves the training and validation losses to a csv file. The
+    function also saves the generated samples to a directory. Additionally, the function
+    saves the model checkpoints every 5 epochs. The model to be trained is specified by
+    the user via command line. The first argument is the noise schedule choice, the second
+    argument is the model type, and the third argument is the neural network choice. The
+    noise schedule choice can be "linear", "cosine", "inverse", or "constant". The model
+    type can be "ColdDiffusion" or "DDPM". The neural network choice can be "CNN" or "UNet".
+
+    @param noise_schedule_choice The choice of noise schedule for the model.
+    Possible choices are "linear", "cosine", "inverse", and "constant".
+    @param n_hidden The hidden dimensions for the neural network model.
+    @param n_epoch The number of epochs to train the model.
+    @param record_metrics A boolean flag to record the training and validation losses.
+    The default is True. If False, the function will save the images to a temporary
+    directory. This is useful for testing and debugging.
+    @param model_type The type of model to train. The default is "ColdDiffusion"; the
+    other option is "DDPM".
+    @param nn_choice The choice of neural network model. The default is "CNN"; the other
+    option is "UNet".
+
+    @return None
+    """
+
+    # Erase previous losses file if metrics are being recorded
     if record_metrics:
         os.makedirs(f"./{model_type}_contents/{nn_choice}_contents/{noise_schedule_choice}_contents",
                     exist_ok=True)
@@ -31,6 +75,7 @@ def train_network(noise_schedule_choice, n_hidden, n_epoch,
         with open(f"./{model_type}_results/{nn_choice}_results/losses_{noise_schedule_choice}.csv", "w") as f:
             f.write("Epoch,Training Loss, Validation Loss\n")
 
+    # Load the MNIST dataset and apply necessary transformations
     tf = transforms.Compose([transforms.ToTensor(),
                              transforms.Normalize((0.5,), (1.0))])
     dataset = MNIST("./data", train=True, download=True, transform=tf)
@@ -43,6 +88,7 @@ def train_network(noise_schedule_choice, n_hidden, n_epoch,
                                        shuffle=True, num_workers=4,
                                        drop_last=True)
 
+    # Choose the neural network model
     if model_type == 'ColdDiffusion':
         if nn_choice == 'CNN':
             gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden,
@@ -73,6 +119,7 @@ def train_network(noise_schedule_choice, n_hidden, n_epoch,
         validation_dataloader
     )
 
+    # Create lists to store the training and validation losses
     training_losses = []
     validation_losses = []
 
@@ -115,9 +162,8 @@ def train_network(noise_schedule_choice, n_hidden, n_epoch,
             grid = make_grid(xh, nrow=4)
 
             # Save samples to `./contents` directory
-
-            # Print the current path
-
+        
+        # Save the image according to the noise schedule
         if record_metrics:
 
             # Save the image according to the noise schedule
@@ -173,4 +219,3 @@ if __name__ == "__main__":
         else:
             train_network(noise_schedule, (32, 64, 128), 50, record_metrics=True,
                           model_type=model_type, nn_choice=nn_choice)
-# train_network("ddpm", (16, 32, 32, 16), 10, record_metrics=False)
